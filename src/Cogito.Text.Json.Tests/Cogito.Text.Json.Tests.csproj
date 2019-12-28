@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Cogito.Json\Cogito.Json.csproj" />
+    <ProjectReference Include="..\Cogito.Text.Json\Cogito.Text.Json.csproj" />
   </ItemGroup>
 
   <ItemGroup>
