@@ -4,6 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Authors>Jerome Haltom</Authors>
+    <Description>Extensions for working with the System.Text.Json API. Contains a JsonElement equality expression builder for fast dynamic JSON equality tests.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
