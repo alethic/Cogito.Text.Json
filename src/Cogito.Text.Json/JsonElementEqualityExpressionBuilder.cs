@@ -42,6 +42,18 @@ namespace Cogito.Text.Json
         static Expression AllOf(params Expression[] expressions) =>
             AllOf((IEnumerable<Expression>)expressions);
 
+
+        readonly JsonElementEqualityExpressionBuilderSettings settings;
+
+        /// <summary>
+        /// Initializes a new instance.
+        /// </summary>
+        /// <param name="settings"></param>
+        public JsonElementEqualityExpressionBuilder(JsonElementEqualityExpressionBuilderSettings settings = null)
+        {
+            this.settings = settings ?? new JsonElementEqualityExpressionBuilderSettings();
+        }
+
         /// <summary>
         /// Builds an expression tree that implements validation of JSON.
         /// </summary>
