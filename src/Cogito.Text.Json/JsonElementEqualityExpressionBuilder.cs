@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text.Json;
 
@@ -17,6 +18,7 @@ namespace Cogito.Text.Json
 
         static readonly Expression True = Expression.Constant(true);
         static readonly Expression False = Expression.Constant(false);
+        static readonly Type[] EmptyTypes = new Type[0];
 
         /// <summary>
         /// Returns an expression that returns <c>true</c> if all of the given expressions returns <c>true</c>.
@@ -40,6 +42,20 @@ namespace Cogito.Text.Json
         /// <returns></returns>
         static Expression AllOf(params Expression[] expressions) =>
             AllOf((IEnumerable<Expression>)expressions);
+
+        /// <summary>
+        /// Builds an expression tree that implements validation of JSON.
+        /// </summary>
+        /// <param name="template"></param>
+        /// <returns></returns>
+        public Expression<JsonElementPredicateDelegate> Build(JsonDocument template)
+        {
+            if (template is null)
+                throw new ArgumentNullException(nameof(template));
+
+            var root = template.RootElement;
+            return Build(ref root);
+        }
 
         /// <summary>
         /// Builds an expression tree that implements validation of JSON.
@@ -133,20 +149,13 @@ namespace Cogito.Text.Json
 
         Expression BuildBoolean(ref JsonElement template, Expression target)
         {
-            switch (template.ValueKind)
-            {
-                case JsonValueKind.True:
-                    return BuildValue<bool>(JsonValueKind.True, ref template, target);
-                case JsonValueKind.False:
-                    return BuildValue<bool>(JsonValueKind.False, ref template, target);
-                default:
-                    throw new InvalidOperationException();
-            }
+            return Expression.Equal(
+                Expression.Property(target, nameof(JsonElement.ValueKind)),
+                Expression.Constant(template.ValueKind));
         }
 
         Expression BuildFloat(double template, Expression target)
         {
-            var m = typeof(JsonElement).GetMethod(nameof(JsonElement.TryGetDouble));
             var d = Expression.Parameter(typeof(double).MakeByRefType(), "d");
 
             return Expression.AndAlso(
@@ -154,15 +163,14 @@ namespace Cogito.Text.Json
                     Expression.Property(target, nameof(JsonElement.ValueKind)),
                     Expression.Constant(JsonValueKind.Number)),
                 Expression.AndAlso(
-                    Expression.Call(target, m, d),
+                    Expression.Call(target, typeof(JsonElement).GetMethod(nameof(JsonElement.TryGetDouble)), d),
                     Expression.Equal(
-                        Expression.Constant(template, typeof(double)),
-                        d)));
+                        d,
+                        Expression.Constant(template))));
         }
 
         Expression BuildInteger(long template, Expression target)
         {
-            var m = typeof(JsonElement).GetMethod(nameof(JsonElement.TryGetInt64));
             var l = Expression.Parameter(typeof(long).MakeByRefType(), "l");
 
             return Expression.AndAlso(
@@ -170,10 +178,10 @@ namespace Cogito.Text.Json
                     Expression.Property(target, nameof(JsonElement.ValueKind)),
                     Expression.Constant(JsonValueKind.Number)),
                 Expression.AndAlso(
-                    Expression.Call(target, m, l),
+                    Expression.Call(target, typeof(JsonElement).GetMethod(nameof(JsonElement.TryGetInt64)), l),
                     Expression.Equal(
-                        Expression.Constant(template, typeof(long)),
-                        l)));
+                        l,
+                        Expression.Constant(template))));
         }
 
         Expression BuildNumber(ref JsonElement template, Expression target)
@@ -189,17 +197,18 @@ namespace Cogito.Text.Json
 
         Expression BuildNull(ref JsonElement template, Expression target)
         {
-            return BuildValue<object>(JsonValueKind.Null, ref template, target);
+            return Expression.Equal(
+                Expression.Property(target, nameof(JsonElement.ValueKind)),
+                Expression.Constant(JsonValueKind.Null));
         }
 
         Expression BuildObject(ref JsonElement template, Expression target)
         {
-            return Expression.Condition(
+            return Expression.AndAlso(
                 Expression.Equal(
                     Expression.Property(target, nameof(JsonElement.ValueKind)),
                     Expression.Constant(JsonValueKind.Object)),
-                AllOf(BuildObjectEval(ref template, target)),
-                False);
+                AllOf(BuildObjectEval(ref template, target)));
         }
 
         /// <summary>
@@ -212,47 +221,50 @@ namespace Cogito.Text.Json
         {
             var l = new List<Expression>();
 
-            l.Add(Expression.Equal(
-                Expression.Property(target, nameof(JsonElement.)),
-                Expression.Constant(template.Count)));
+            // target's property count is equal to template's property count
+            l.Add(
+                Expression.Equal(
+                    Expression.Call(
+                        typeof(Enumerable),
+                        nameof(Enumerable.Count),
+                        new[] { typeof(JsonProperty) },
+                        Expression.Call(
+                            target,
+                            nameof(JsonElement.EnumerateObject),
+                            EmptyTypes)),
+                    Expression.Constant(template.EnumerateObject().Count())));
 
-            foreach (var p in template.Properties())
-                l.Add(Expression.AndAlso(
-                    Expression.IsTrue(
+            foreach (var p in template.EnumerateObject())
+            {
+                var t = p.Value;
+                var v = Expression.Parameter(typeof(JsonElement).MakeByRefType(), "v");
+
+                // invoke TryGetProperty(out var v) && Build(p, v)
+                l.Add(
+                    Expression.AndAlso(
                         Expression.Call(
                             target,
-                            nameof(JObject.ContainsKey),
-                            new Type[0],
-                            new[] { Expression.Constant(p.Name) })),
-                    Build(
-                        p.Value,
-                        Expression.Call(
-                            target,
-                            nameof(JObject.GetValue),
-                            new Type[0],
-                            new[] { Expression.Constant(p.Name) }))));
+                            nameof(JsonElement.TryGetProperty),
+                            EmptyTypes,
+                            Expression.Constant(p.Name),
+                            v),
+                        Build(
+                            ref t,
+                            v)));
+            }
 
             return l;
         }
 
         Expression BuildString(ref JsonElement template, Expression target)
         {
-            return BuildValue<string>(JsonValueKind.String, ref template, target);
-        }
-
-        Expression BuildValue<T>(JsonValueKind type, ref JsonElement template, Expression target)
-        {
-            var t = Expression.Convert(target, typeof(JsonElement));
-            var v = Expression.Convert(Expression.Property(t, nameof(JValue.Value)), typeof(T));
-
-            return Expression.Condition(
-                Expression.AndAlso(
-                    Expression.TypeIs(target, typeof(JsonElement)),
-                    Expression.Equal(
-                        Expression.Property(target, nameof(JsonElement.ValueKind)),
-                        Expression.Constant(type))),
-                Expression.Equal(Expression.Constant((T)template.Value), v),
-                False);
+            return Expression.AndAlso(
+                Expression.Equal(
+                    Expression.Property(target, nameof(JsonElement.ValueKind)),
+                    Expression.Constant(JsonValueKind.String)),
+                Expression.Equal(
+                    Expression.Call(target, nameof(JsonElement.GetString), EmptyTypes),
+                    Expression.Constant(template.GetString())));
         }
 
     }
