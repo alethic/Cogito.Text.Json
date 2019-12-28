@@ -146,40 +146,34 @@ namespace Cogito.Text.Json
 
         Expression BuildFloat(double template, Expression target)
         {
-            var t = Expression.Convert(target, typeof(JsonElement));
+            var m = typeof(JsonElement).GetMethod(nameof(JsonElement.TryGetDouble));
+            var d = Expression.Parameter(typeof(double).MakeByRefType(), "d");
 
-            return Expression.Switch(
-                Expression.Property(target, nameof(JToken.Type)),
-                False,
-                Expression.SwitchCase(
+            return Expression.AndAlso(
+                Expression.Equal(
+                    Expression.Property(target, nameof(JsonElement.ValueKind)),
+                    Expression.Constant(JsonValueKind.Number)),
+                Expression.AndAlso(
+                    Expression.Call(target, m, d),
                     Expression.Equal(
-                        Expression.Convert(Expression.Property(t, nameof(JValue.Value)), typeof(double)),
-                        Expression.Constant((double)template.Value)),
-                    Expression.Constant(JTokenType.Float)),
-                Expression.SwitchCase(
-                    Expression.Equal(
-                        Expression.Convert(Expression.Convert(Expression.Property(t, nameof(JValue.Value)), typeof(long)), typeof(double)),
-                        Expression.Constant((double)template.Value)),
-                    Expression.Constant(JTokenType.Integer)));
+                        Expression.Constant(template, typeof(double)),
+                        d)));
         }
 
         Expression BuildInteger(long template, Expression target)
         {
-            var t = Expression.Convert(target, typeof(JsonElement));
+            var m = typeof(JsonElement).GetMethod(nameof(JsonElement.TryGetInt64));
+            var l = Expression.Parameter(typeof(long).MakeByRefType(), "l");
 
-            return Expression.Switch(
-                Expression.Property(target, nameof(JToken.Type)),
-                False,
-                Expression.SwitchCase(
+            return Expression.AndAlso(
+                Expression.Equal(
+                    Expression.Property(target, nameof(JsonElement.ValueKind)),
+                    Expression.Constant(JsonValueKind.Number)),
+                Expression.AndAlso(
+                    Expression.Call(target, m, l),
                     Expression.Equal(
-                        Expression.Convert(Expression.Property(t, nameof(JValue.Value)), typeof(long)),
-                        Expression.Constant((long)template.Value)),
-                    Expression.Constant(JTokenType.Integer)),
-                Expression.SwitchCase(
-                    Expression.Equal(
-                        Expression.Convert(Expression.Property(t, nameof(JValue.Value)), typeof(double)),
-                        Expression.Constant((double)(long)template.Value)),
-                    Expression.Constant(JTokenType.Float)));
+                        Expression.Constant(template, typeof(long)),
+                        l)));
         }
 
         Expression BuildNumber(ref JsonElement template, Expression target)
@@ -201,12 +195,10 @@ namespace Cogito.Text.Json
         Expression BuildObject(ref JsonElement template, Expression target)
         {
             return Expression.Condition(
-                Expression.AndAlso(
-                    Expression.TypeIs(target, typeof(JObject)),
-                    Expression.Equal(
-                        Expression.Property(target, nameof(JsonElement.ValueKind)),
-                        Expression.Constant(JsonValueKind.Object))),
-                AllOf(BuildObjectEval(template, Expression.Convert(target, typeof(JObject)))),
+                Expression.Equal(
+                    Expression.Property(target, nameof(JsonElement.ValueKind)),
+                    Expression.Constant(JsonValueKind.Object)),
+                AllOf(BuildObjectEval(ref template, target)),
                 False);
         }
 
@@ -221,7 +213,7 @@ namespace Cogito.Text.Json
             var l = new List<Expression>();
 
             l.Add(Expression.Equal(
-                Expression.Property(target, nameof(JObject.Count)),
+                Expression.Property(target, nameof(JsonElement.)),
                 Expression.Constant(template.Count)));
 
             foreach (var p in template.Properties())
