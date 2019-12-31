@@ -47,7 +47,7 @@ namespace Cogito.Text.Json
             /// <returns></returns>
             public bool MoveNext()
             {
-                return parent.TryGetNextOffset(ref offset);
+                return parent.TryGetNextOffset(offset, out offset);
             }
 
             /// <summary>
@@ -93,12 +93,27 @@ namespace Cogito.Text.Json
         internal ReadOnlyMemory<char> Memory { get; }
 
         /// <summary>
+        /// Gets the first segment of the pointer.
+        /// </summary>
+        public JsonPointerSegment? First => GetFirst();
+
+        /// <summary>
+        /// Implements the getter for <see cref="First"/>.
+        /// </summary>
+        /// <returns></returns>
+        JsonPointerSegment? GetFirst()
+        {
+            return TryGetNextOffset(-1, out var o) ? new JsonPointerSegment(this, o) : (JsonPointerSegment?)null;
+        }
+
+        /// <summary>
         /// Tries to advance the offset to the next segment.
         /// </summary>
         /// <param name="offset"></param>
         /// <returns></returns>
-        internal bool TryGetNextOffset(ref int offset)
+        internal bool TryGetNextOffset(int current, out int offset)
         {
+            offset = current;
             offset += offset == -1 ? 1 : GetSegmentLength(offset);
             return Memory.Length > offset && Memory.Span[offset] == '/';
         }

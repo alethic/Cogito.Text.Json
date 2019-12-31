@@ -44,21 +44,25 @@ namespace Cogito.Text.Json
         public ReadOnlySpan<char> Span => Memory.Span;
 
         /// <summary>
+        /// Gets the next segment.
+        /// </summary>
+        public JsonPointerSegment? Next => parent.TryGetNextOffset(offset, out var o) ? new JsonPointerSegment(parent, o) : (JsonPointerSegment?)null;
+
+        /// <summary>
         /// Tries to get the next pointer segment from the given segmet.
         /// </summary>
         /// <param name="next"></param>
         /// <returns></returns>
         public bool TryGetNext(out JsonPointerSegment next)
         {
-            var o = offset;
-            if (parent.TryGetNextOffset(ref o))
+            if (parent.TryGetNextOffset(offset, out var o))
             {
                 next = new JsonPointerSegment(parent, o);
                 return true;
             }
             else
             {
-                next = new JsonPointerSegment(parent, int.MaxValue);
+                next = new JsonPointerSegment(parent, -1);
                 return false;
             }
         }
