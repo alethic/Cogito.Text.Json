@@ -82,7 +82,7 @@ namespace Cogito.Text.Json
         /// </summary>
         /// <param name="text"></param>
         public JsonPointer(string text) :
-            this(text.AsMemory())
+            this(text?.AsMemory() ?? throw new ArgumentNullException(nameof(text)))
         {
 
         }
