@@ -192,6 +192,24 @@ namespace Cogito.Text.Json.Tests
             e.Should().BeNull();
         }
 
+        [TestMethod]
+        public void Should_get_first_segment()
+        {
+            new JsonPointer("/").First.Value.ToString().Should().Be("/");
+        }
+
+        [TestMethod]
+        public void Should_get_next_segment()
+        {
+            new JsonPointer("/a/b").First.Value.Next.Value.ToString().Should().Be("/b");
+        }
+
+        [TestMethod]
+        public void Should_return_null_if_no_first()
+        {
+            new JsonPointer("").First.Should().BeNull();
+        }
+
     }
 
 }
