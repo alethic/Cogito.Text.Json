@@ -1,18 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+    <LangVersion>7.2</LangVersion>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Authors>Jerome Haltom</Authors>
     <Description>Extensions for working with the System.Text.Json API. Contains a JsonElement equality expression builder for fast dynamic JSON equality tests.</Description>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <LangVersion>7.1</LangVersion>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
