@@ -107,6 +107,28 @@ namespace Cogito.Text.Json
         }
 
         /// <summary>
+        /// Gets the number of segments within the pointer.
+        /// </summary>
+        public int Count => GetCount();
+
+        /// <summary>
+        /// Implements the getter for <see cref="Count"/>.
+        /// </summary>
+        /// <returns></returns>
+        int GetCount()
+        {
+            // essentially just a count of '/' characters
+
+            var i = 0;
+
+            foreach (var c in Memory.Span)
+                if (c == '/')
+                    i++;
+
+            return i;
+        }
+
+        /// <summary>
         /// Tries to advance the offset to the next segment.
         /// </summary>
         /// <param name="offset"></param>

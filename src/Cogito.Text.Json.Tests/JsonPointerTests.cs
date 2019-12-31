@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Text.Json;
+
 using FluentAssertions;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -208,6 +209,24 @@ namespace Cogito.Text.Json.Tests
         public void Should_return_null_if_no_first()
         {
             new JsonPointer("").First.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void Should_return_count_for_root()
+        {
+            new JsonPointer("").Count.Should().Be(0);
+        }
+
+        [TestMethod]
+        public void Should_return_count_for_empty_value()
+        {
+            new JsonPointer("/").Count.Should().Be(1);
+        }
+
+        [TestMethod]
+        public void Should_return_count_for_three()
+        {
+            new JsonPointer("/asd/asd/asd").Count.Should().Be(3);
         }
 
     }
