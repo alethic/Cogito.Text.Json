@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
-    <LangVersion>7.2</LangVersion>
+    <LangVersion>8.0</LangVersion>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Authors>Jerome Haltom</Authors>
     <Description>Extensions for working with the System.Text.Json API. Contains a JsonElement equality expression builder for fast dynamic JSON equality tests.</Description>

@@ -14,24 +14,27 @@ namespace Cogito.Text.Json.Tests
     {
 
         [TestMethod]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void Should_throw_on_length_of_bad_segment()
         {
             var p = new JsonPointer("");
-            p.Invoking(i => i.GetSegmentLength(-1)).Should().Throw<ArgumentOutOfRangeException>();
+            p.GetSegmentLength(-1);
         }
 
         [TestMethod]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void Should_throw_on_length_of_bad_second_segment()
         {
             var p = new JsonPointer("/");
-            p.Invoking(i => i.GetSegmentLength(1)).Should().Throw<ArgumentOutOfRangeException>();
+            p.GetSegmentLength(1);
         }
 
         [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
         public void Should_throw_on_length_of_non_slash_character()
         {
             var p = new JsonPointer("/a");
-            p.Invoking(i => i.GetSegmentLength(1)).Should().Throw<ArgumentException>();
+            p.GetSegmentLength(1);
         }
 
         [TestMethod]
@@ -196,19 +199,19 @@ namespace Cogito.Text.Json.Tests
         [TestMethod]
         public void Should_get_first_segment()
         {
-            new JsonPointer("/").First.Value.ToString().Should().Be("/");
+            new JsonPointer("/").FirstSegment.ToString().Should().Be("/");
         }
 
         [TestMethod]
         public void Should_get_next_segment()
         {
-            new JsonPointer("/a/b").First.Value.Next.Value.ToString().Should().Be("/b");
+            new JsonPointer("/a/b").FirstSegment.Next.ToString().Should().Be("/b");
         }
 
         [TestMethod]
         public void Should_return_null_if_no_first()
         {
-            new JsonPointer("").First.Should().BeNull();
+            (new JsonPointer("").FirstSegment == JsonPointer.NullSegment).Should().BeTrue();
         }
 
         [TestMethod]

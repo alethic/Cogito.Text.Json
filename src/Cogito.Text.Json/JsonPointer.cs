@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Cogito.Text.Json
 {
@@ -8,13 +8,13 @@ namespace Cogito.Text.Json
     /// <summary>
     /// Describes a JSON Pointer as specified in RFC6901.
     /// </summary>
-    public readonly struct JsonPointer : IEnumerable<JsonPointerSegment>
+    public readonly ref struct JsonPointer
     {
 
         /// <summary>
         /// Provides enumeration across the elements of a <see cref="JsonPointer"/>.
         /// </summary>
-        public struct JsonPointerSegmentEnumerator : IEnumerator<JsonPointerSegment>
+        public ref struct Enumerator
         {
 
             readonly JsonPointer parent;
@@ -25,7 +25,7 @@ namespace Cogito.Text.Json
             /// </summary>
             /// <param name="parent"></param>
             /// <param name="offset"></param>
-            public JsonPointerSegmentEnumerator(JsonPointer parent, int offset)
+            public Enumerator(in JsonPointer parent, int offset)
             {
                 this.parent = parent;
                 this.offset = offset;
@@ -35,11 +35,6 @@ namespace Cogito.Text.Json
             /// Gets the current segment of the enumerator.
             /// </summary>
             public JsonPointerSegment Current => offset > -1 ? new JsonPointerSegment(parent, offset) : throw new InvalidOperationException();
-
-            /// <summary>
-            /// Gets the current segment of the enumerator.
-            /// </summary>
-            object IEnumerator.Current => Current;
 
             /// <summary>
             /// Advances to the next segment of the enumerator.
@@ -69,12 +64,27 @@ namespace Cogito.Text.Json
         }
 
         /// <summary>
+        /// Gets the segment representing null for this pointer.
+        /// </summary>
+        public static JsonPointerSegment NullSegment => new JsonPointerSegment(new JsonPointer(ReadOnlySpan<char>.Empty), -1);
+
+        /// <summary>
+        /// Initializes a new instance.
+        /// </summary>
+        /// <param name="span"></param>
+        public JsonPointer(ReadOnlySpan<char> span)
+        {
+            Span = span;
+        }
+
+        /// <summary>
         /// Initializes a new instance.
         /// </summary>
         /// <param name="memory"></param>
-        public JsonPointer(ReadOnlyMemory<char> memory)
+        public JsonPointer(ReadOnlyMemory<char> memory) :
+            this(memory.Span)
         {
-            Memory = memory;
+
         }
 
         /// <summary>
@@ -82,28 +92,45 @@ namespace Cogito.Text.Json
         /// </summary>
         /// <param name="text"></param>
         public JsonPointer(string text) :
-            this(text?.AsMemory() ?? throw new ArgumentNullException(nameof(text)))
+            this(text.AsSpan())
         {
 
         }
 
         /// <summary>
+        /// Gets the segment at the specified index, or <see cref="JsonPointer.NullSegment"/> if not available.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public JsonPointerSegment this[int index]
+        {
+            get
+            {
+                var s = FirstSegment;
+                for (int j = 0; j < index - 1; j++)
+                    s = s.Next;
+
+                return s;
+            }
+        }
+
+        /// <summary>
         /// Gets the memory representing the pointer string.
         /// </summary>
-        internal ReadOnlyMemory<char> Memory { get; }
+        internal ReadOnlySpan<char> Span { get; }
 
         /// <summary>
         /// Gets the first segment of the pointer.
         /// </summary>
-        public JsonPointerSegment? First => GetFirst();
+        public JsonPointerSegment FirstSegment => GetFirst();
 
         /// <summary>
-        /// Implements the getter for <see cref="First"/>.
+        /// Implements the getter for <see cref="FirstSegment"/>.
         /// </summary>
         /// <returns></returns>
-        JsonPointerSegment? GetFirst()
+        JsonPointerSegment GetFirst()
         {
-            return TryGetNextOffset(-1, out var o) ? new JsonPointerSegment(this, o) : (JsonPointerSegment?)null;
+            return TryGetNextOffset(-1, out var o) ? new JsonPointerSegment(this, o) : NullSegment;
         }
 
         /// <summary>
@@ -121,7 +148,7 @@ namespace Cogito.Text.Json
 
             var i = 0;
 
-            foreach (var c in Memory.Span)
+            foreach (var c in Span)
                 if (c == '/')
                     i++;
 
@@ -137,7 +164,7 @@ namespace Cogito.Text.Json
         {
             offset = current;
             offset += offset == -1 ? 1 : GetSegmentLength(offset);
-            return Memory.Length > offset && Memory.Span[offset] == '/';
+            return Span.Length > offset && Span[offset] == '/';
         }
 
         /// <summary>
@@ -149,14 +176,14 @@ namespace Cogito.Text.Json
         {
             if (offset < 0)
                 throw new ArgumentOutOfRangeException(nameof(offset));
-            if (offset >= Memory.Length)
+            if (offset >= Span.Length)
                 throw new ArgumentOutOfRangeException(nameof(offset));
-            if (Memory.Span[offset] != '/')
+            if (Span[offset] != '/')
                 throw new ArgumentException("Segment must begin at forward slash.", nameof(offset));
 
             // start one character ahead, find '/' or end of string
-            var s = Memory.Slice(offset + 1);
-            var p = s.Span.IndexOf('/');
+            var s = Span.Slice(offset + 1);
+            var p = s.IndexOf('/');
             return p == -1 ? s.Length + 1 : p + 1;
         }
 
@@ -164,19 +191,55 @@ namespace Cogito.Text.Json
         /// Gets an enumerator over the segments of the JSON pointer.
         /// </summary>
         /// <returns></returns>
-        public JsonPointerSegmentEnumerator GetEnumerator()
+        public Enumerator GetEnumerator()
         {
-            return new JsonPointerSegmentEnumerator(this, -1);
+            return new Enumerator(this, -1);
         }
 
-        IEnumerator<JsonPointerSegment> IEnumerable<JsonPointerSegment>.GetEnumerator()
+        /// <summary>
+        /// Gets an array of strings formed from the path segments.
+        /// </summary>
+        /// <returns></returns>
+        public string[] ToArray()
         {
-            return GetEnumerator();
+            var l = Count;
+            var o = new string[l];
+
+            if (o.Length > 0)
+            {
+                var i = 0;
+                var c = FirstSegment;
+                while (c != NullSegment)
+                {
+                    o[i] = c.ToString();
+                    c = c.Next;
+                    i++;
+                }
+            }
+
+            return o;
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
+        /// <summary>
+        /// Gets an array of strings formed from the path segments.
+        /// </summary>
+        /// <returns></returns>
+        public IList<string> ToList()
         {
-            return GetEnumerator();
+            return ToArray().ToList();
+        }
+
+        /// <summary>
+        /// Returns <c>true</c> if this <see cref="JsonPointer"/> equals the other <see cref="JsonPointer"/>.
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public bool Equals(JsonPointer other)
+        {
+            if (Span.IsEmpty && other.Span.IsEmpty)
+                return true;
+            else
+                return Span.SequenceEqual(other.Span);
         }
 
     }

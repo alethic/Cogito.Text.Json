@@ -19,7 +19,7 @@ namespace Cogito.Text.Json
             if (text is null)
                 throw new ArgumentNullException(nameof(text));
 
-            return SelectPointer(element, text.AsMemory());
+            return SelectPointer(element, new JsonPointer(text));
         }
 
         /// <summary>
@@ -30,8 +30,7 @@ namespace Cogito.Text.Json
         /// <returns></returns>
         public static JsonElement? SelectPointer(JsonElement element, ReadOnlySpan<char> text)
         {
-            using (var memory = MemoryPool<char>.Shared.Rent(text.Length))
-                return SelectPointer(element, new JsonPointer(memory.Memory.Slice(0, text.Length)));
+            return SelectPointer(element, new JsonPointer(text));
         }
 
         /// <summary>
