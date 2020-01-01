@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Text.Json;
 
 using FluentAssertions;
@@ -12,6 +11,36 @@ namespace Cogito.Text.Json.Tests
     [TestClass]
     public class JsonPointerTests
     {
+
+        [TestMethod]
+        public void Should_execute_spec_tests()
+        {
+            var d = JsonDocument.Parse(@"
+{
+      ""foo"": [""bar"", ""baz""],
+      """": 0,
+      ""a/b"": 1,
+      ""c%d"": 2,
+      ""e^f"": 3,
+      ""g|h"": 4,
+      ""i\\j"": 5,
+      ""k\""l"": 6,
+      "" "": 7,
+      ""m~n"": 8
+}");
+            d.RootElement.SelectByPointer("").Value.Should().Be(d.RootElement);
+            d.RootElement.SelectByPointer("/foo").Value.Should().Be(d.RootElement.GetProperty("foo"));
+            d.RootElement.SelectByPointer("/foo/0").Value.GetString().Should().Be("bar");
+            d.RootElement.SelectByPointer("/").Value.GetInt32().Should().Be(0);
+            d.RootElement.SelectByPointer("/a~1b").Value.GetInt32().Should().Be(1);
+            d.RootElement.SelectByPointer("/c%d").Value.GetInt32().Should().Be(2);
+            d.RootElement.SelectByPointer("/e^f").Value.GetInt32().Should().Be(3);
+            d.RootElement.SelectByPointer("/g|h").Value.GetInt32().Should().Be(4);
+            d.RootElement.SelectByPointer("/i\\j").Value.GetInt32().Should().Be(5);
+            d.RootElement.SelectByPointer("/k\"l").Value.GetInt32().Should().Be(6);
+            d.RootElement.SelectByPointer("/ ").Value.GetInt32().Should().Be(7);
+            d.RootElement.SelectByPointer("/m~0n").Value.GetInt32().Should().Be(8);
+        }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentOutOfRangeException))]

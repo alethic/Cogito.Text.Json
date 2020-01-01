@@ -63,7 +63,20 @@ namespace Cogito.Text.Json
         /// <summary>
         /// Gets a span that covers the contents of this segment.
         /// </summary>
-        public readonly ReadOnlySpan<char> Span => parent.Span.Slice(offset, Length);
+        public readonly ReadOnlySpan<char> Span => DecodeSpan(parent.Span.Slice(offset, Length));
+
+        /// <summary>
+        /// Potentially decodes the data within the span.
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        ReadOnlySpan<char> DecodeSpan(ReadOnlySpan<char> source)
+        {
+            if (source.Contains("~".AsSpan(), StringComparison.Ordinal) == false)
+                return source;
+            else
+                return source.ToString().Replace("~1", "/").Replace("~0", "~").AsSpan();
+        }
 
         /// <summary>
         /// Gets the next segment.
