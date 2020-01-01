@@ -37,6 +37,16 @@ namespace Cogito.Text.Json
         }
 
         /// <summary>
+        /// Selects into the current element by pointer.
+        /// </summary>
+        /// <param name="segment"></param>
+        /// <returns></returns>
+        public IJsonPointerNavigator Select(JsonPointerSegment segment)
+        {
+            return SelectSegment(element, segment) is JsonElement e ? new JsonElementPointerNavigator(e) : null;
+        }
+
+        /// <summary>
         /// Selects into the specified element by pointer. Does not require object allocation.
         /// </summary>
         /// <param name="element"></param>
@@ -45,6 +55,17 @@ namespace Cogito.Text.Json
         public static JsonElement? Select(JsonElement element, JsonPointer pointer)
         {
             return SelectPointer(element, pointer);
+        }
+
+        /// <summary>
+        /// Selects into the specified element by segment. Does not require object allocation.
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="segment"></param>
+        /// <returns></returns>
+        public static JsonElement? Select(JsonElement element, JsonPointerSegment segment)
+        {
+            return SelectSegment(element, segment);
         }
 
         /// <summary>

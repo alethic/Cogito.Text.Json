@@ -13,12 +13,12 @@ namespace Cogito.Text.Json
         /// <param name="element"></param>
         /// <param name="text"></param>
         /// <returns></returns>
-        public static JsonElement? SelectPointer(this JsonElement element, string text)
+        public static JsonElement? SelectByPointer(this JsonElement element, string text)
         {
             if (text is null)
                 throw new ArgumentNullException(nameof(text));
 
-            return SelectPointer(element, new JsonPointer(text));
+            return SelectByPointer(element, new JsonPointer(text));
         }
 
         /// <summary>
@@ -27,9 +27,9 @@ namespace Cogito.Text.Json
         /// <param name="element"></param>
         /// <param name="span"></param>
         /// <returns></returns>
-        public static JsonElement? SelectPointer(JsonElement element, ReadOnlySpan<char> span)
+        public static JsonElement? SelectByPointer(JsonElement element, ReadOnlySpan<char> span)
         {
-            return SelectPointer(element, new JsonPointer(span));
+            return SelectByPointer(element, new JsonPointer(span));
         }
 
         /// <summary>
@@ -38,9 +38,9 @@ namespace Cogito.Text.Json
         /// <param name="element"></param>
         /// <param name="memory"></param>
         /// <returns></returns>
-        public static JsonElement? SelectPointer(this JsonElement element, ReadOnlyMemory<char> memory)
+        public static JsonElement? SelectByPointer(this JsonElement element, ReadOnlyMemory<char> memory)
         {
-            return SelectPointer(element, new JsonPointer(memory));
+            return SelectByPointer(element, new JsonPointer(memory));
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace Cogito.Text.Json
         /// <param name="element"></param>
         /// <param name="pointer"></param>
         /// <returns></returns>
-        public static JsonElement? SelectPointer(this JsonElement element, JsonPointer pointer)
+        public static JsonElement? SelectByPointer(this JsonElement element, JsonPointer pointer)
         {
             return JsonElementPointerNavigator.Select(element, pointer);
         }

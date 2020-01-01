@@ -112,7 +112,7 @@ namespace Cogito.Text.Json.Tests
         public void Should_return_root()
         {
             var d = JsonDocument.Parse(@"{ ""prop"": ""val"" }");
-            var e = d.RootElement.SelectPointer("");
+            var e = d.RootElement.SelectByPointer("");
             e.Should().Be(d.RootElement);
         }
 
@@ -120,7 +120,7 @@ namespace Cogito.Text.Json.Tests
         public void Should_return_property()
         {
             var d = JsonDocument.Parse(@"{ ""prop"": ""val"" }");
-            var e = d.RootElement.SelectPointer("/prop");
+            var e = d.RootElement.SelectByPointer("/prop");
             e.Should().Be(d.RootElement.GetProperty("prop"));
         }
 
@@ -128,7 +128,7 @@ namespace Cogito.Text.Json.Tests
         public void Should_return_nested_property()
         {
             var d = JsonDocument.Parse(@"{ ""prop"": { ""prop2"": ""val"" } }");
-            var e = d.RootElement.SelectPointer("/prop/prop2");
+            var e = d.RootElement.SelectByPointer("/prop/prop2");
             e.Should().Be(d.RootElement.GetProperty("prop").GetProperty("prop2"));
         }
 
@@ -136,7 +136,7 @@ namespace Cogito.Text.Json.Tests
         public void Should_return_null_for_missing_property()
         {
             var d = JsonDocument.Parse(@"{ ""prop"": ""val"" }");
-            var e = d.RootElement.SelectPointer("/prop2");
+            var e = d.RootElement.SelectByPointer("/prop2");
             e.Should().BeNull();
         }
 
@@ -144,7 +144,7 @@ namespace Cogito.Text.Json.Tests
         public void Should_return_null_for_nested_missing_property()
         {
             var d = JsonDocument.Parse(@"{ ""prop"": { ""prop2"": ""val"" } }");
-            var e = d.RootElement.SelectPointer("/prop/prop3");
+            var e = d.RootElement.SelectByPointer("/prop/prop3");
             e.Should().BeNull();
         }
 
@@ -152,7 +152,7 @@ namespace Cogito.Text.Json.Tests
         public void Should_return_null_for_nested_property_inside_missing()
         {
             var d = JsonDocument.Parse(@"{ ""prop"": { ""prop2"": ""val"" } }");
-            var e = d.RootElement.SelectPointer("/prop3/prop2");
+            var e = d.RootElement.SelectByPointer("/prop3/prop2");
             e.Should().BeNull();
         }
 
@@ -160,7 +160,7 @@ namespace Cogito.Text.Json.Tests
         public void Should_return_item()
         {
             var d = JsonDocument.Parse(@"[ ""val"" ]");
-            var e = d.RootElement.SelectPointer("/0");
+            var e = d.RootElement.SelectByPointer("/0");
             e.Should().Be(d.RootElement[0]);
         }
 
@@ -168,7 +168,7 @@ namespace Cogito.Text.Json.Tests
         public void Should_return_property_inside_array()
         {
             var d = JsonDocument.Parse(@"[ { ""prop"": ""val"" } ]");
-            var e = d.RootElement.SelectPointer("/0/prop");
+            var e = d.RootElement.SelectByPointer("/0/prop");
             e.Should().Be(d.RootElement[0].GetProperty("prop"));
         }
 
@@ -176,7 +176,7 @@ namespace Cogito.Text.Json.Tests
         public void Should_return_array_inside_property()
         {
             var d = JsonDocument.Parse(@"{ ""prop"": [ ""val"" ] }");
-            var e = d.RootElement.SelectPointer("/prop/0");
+            var e = d.RootElement.SelectByPointer("/prop/0");
             e.Should().Be(d.RootElement.GetProperty("prop")[0]);
         }
 
@@ -184,7 +184,7 @@ namespace Cogito.Text.Json.Tests
         public void Should_return_array_null_againt_object()
         {
             var d = JsonDocument.Parse(@"{ ""prop"": [ ""val"" ] }");
-            var e = d.RootElement.SelectPointer("/0");
+            var e = d.RootElement.SelectByPointer("/0");
             e.Should().BeNull();
         }
 
@@ -192,7 +192,7 @@ namespace Cogito.Text.Json.Tests
         public void Should_return_array_null_againt_string()
         {
             var d = JsonDocument.Parse(@"""val""");
-            var e = d.RootElement.SelectPointer("/0");
+            var e = d.RootElement.SelectByPointer("/0");
             e.Should().BeNull();
         }
 

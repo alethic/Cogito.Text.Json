@@ -14,6 +14,13 @@
         /// <returns></returns>
         IJsonPointerNavigator Select(JsonPointer pointer);
 
+        /// <summary>
+        /// Selects the result given the specified <see cref="JsonPointerSegment"/>.
+        /// </summary>
+        /// <param name="segment"></param>
+        /// <returns></returns>
+        IJsonPointerNavigator Select(JsonPointerSegment segment);
+
     }
 
 }
