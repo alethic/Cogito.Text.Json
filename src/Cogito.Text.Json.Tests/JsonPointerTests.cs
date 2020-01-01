@@ -211,7 +211,7 @@ namespace Cogito.Text.Json.Tests
         [TestMethod]
         public void Should_return_null_if_no_first()
         {
-            (new JsonPointer("").FirstSegment == JsonPointer.NullSegment).Should().BeTrue();
+            (new JsonPointer("").FirstSegment == JsonPointerSegment.Null).Should().BeTrue();
         }
 
         [TestMethod]

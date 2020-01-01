@@ -9,11 +9,28 @@ namespace Cogito.Text.Json
     public readonly ref struct JsonPointerSegment
     {
 
+        /// <summary>
+        /// Gets the segment representing null.
+        /// </summary>
+        public static JsonPointerSegment Null => new JsonPointerSegment(new JsonPointer(ReadOnlySpan<char>.Empty), -1);
+
+        /// <summary>
+        /// Returns <c>true</c> if the two objects are equal.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
         public static bool operator ==(JsonPointerSegment a, JsonPointerSegment b)
         {
             return a.Equals(b);
         }
 
+        /// <summary>
+        /// Returns <c>true</c> if the two objects are not equal.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
         public static bool operator !=(JsonPointerSegment a, JsonPointerSegment b)
         {
             return !(a == b);
@@ -51,7 +68,7 @@ namespace Cogito.Text.Json
         /// <summary>
         /// Gets the next segment.
         /// </summary>
-        public readonly JsonPointerSegment Next => parent.TryGetNextOffset(offset, out var o) ? new JsonPointerSegment(parent, o) : JsonPointer.NullSegment;
+        public readonly JsonPointerSegment Next => parent.TryGetNextOffset(offset, out var o) ? new JsonPointerSegment(parent, o) : JsonPointerSegment.Null;
 
         /// <summary>
         /// Gets the string representation of this segment.
@@ -79,6 +96,10 @@ namespace Cogito.Text.Json
         {
             return parent.Equals(other.parent) && offset.Equals(other.offset);
         }
+
+        public override bool Equals(object obj) => throw new NotImplementedException();
+
+        public override int GetHashCode() => throw new NotImplementedException();
 
     }
 

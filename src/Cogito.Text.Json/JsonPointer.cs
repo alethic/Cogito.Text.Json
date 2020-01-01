@@ -64,11 +64,6 @@ namespace Cogito.Text.Json
         }
 
         /// <summary>
-        /// Gets the segment representing null for this pointer.
-        /// </summary>
-        public static JsonPointerSegment NullSegment => new JsonPointerSegment(new JsonPointer(ReadOnlySpan<char>.Empty), -1);
-
-        /// <summary>
         /// Initializes a new instance.
         /// </summary>
         /// <param name="span"></param>
@@ -130,7 +125,7 @@ namespace Cogito.Text.Json
         /// <returns></returns>
         JsonPointerSegment GetFirst()
         {
-            return TryGetNextOffset(-1, out var o) ? new JsonPointerSegment(this, o) : NullSegment;
+            return TryGetNextOffset(-1, out var o) ? new JsonPointerSegment(this, o) : JsonPointerSegment.Null;
         }
 
         /// <summary>
@@ -209,7 +204,7 @@ namespace Cogito.Text.Json
             {
                 var i = 0;
                 var c = FirstSegment;
-                while (c != NullSegment)
+                while (c != JsonPointerSegment.Null)
                 {
                     o[i] = c.ToString();
                     c = c.Next;
