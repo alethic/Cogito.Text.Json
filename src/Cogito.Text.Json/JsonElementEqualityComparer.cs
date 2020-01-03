@@ -63,11 +63,16 @@ namespace Cogito.Text.Json
 
         static bool DeepEqualsObject(JsonElement a, JsonElement b)
         {
+            var al = 0;
+
             foreach (var ai in a.EnumerateObject())
+            {
+                al++;
                 if (!(b.TryGetProperty(ai.Name, out var bv) && DeepEquals(ai.Value, bv)))
                     return false;
+            }
 
-            if (a.GetPropertyCount() != b.GetPropertyCount())
+            if (al != b.GetPropertyCount())
                 return false;
 
             return true;
