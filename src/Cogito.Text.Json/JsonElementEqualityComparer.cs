@@ -65,10 +65,10 @@ namespace Cogito.Text.Json
         {
             var al = 0;
 
-            foreach (var ai in a.EnumerateObject())
+            foreach (var ap in a.EnumerateObject())
             {
                 al++;
-                if (!(b.TryGetProperty(ai.Name, out var bv) && DeepEquals(ai.Value, bv)))
+                if (!(b.TryGetProperty(ap.Name, out var bv) && DeepEquals(ap.Value, bv)))
                     return false;
             }
 
