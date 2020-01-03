@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 
@@ -11,6 +10,8 @@ namespace Cogito.Text.Json
     /// </summary>
     public class JsonElementEqualityComparer : IEqualityComparer<JsonElement>
     {
+
+        const int H = 31;
 
         public static readonly JsonElementEqualityComparer Default = new JsonElementEqualityComparer();
 
@@ -94,55 +95,80 @@ namespace Cogito.Text.Json
         /// <returns></returns>
         public int GetHashCode(JsonElement obj)
         {
+            var h = 17;
+
             switch (obj.ValueKind)
             {
                 case JsonValueKind.Undefined:
-                    return JsonValueKind.Undefined.GetHashCode();
+                    h = h * H + JsonValueKind.Undefined.GetHashCode();
+                    break;
                 case JsonValueKind.Null:
-                    return JsonValueKind.Null.GetHashCode();
+                    h = h * H + JsonValueKind.Null.GetHashCode();
+                    break;
                 case JsonValueKind.False:
-                    return JsonValueKind.False.GetHashCode();
+                    h = h * H + JsonValueKind.False.GetHashCode();
+                    break;
                 case JsonValueKind.True:
-                    return JsonValueKind.True.GetHashCode();
+                    h = h * H + JsonValueKind.True.GetHashCode();
+                    break;
                 case JsonValueKind.String:
-                    return JsonValueKind.String.GetHashCode() ^ obj.GetString().GetHashCode());
+                    h = h * H + JsonValueKind.String.GetHashCode();
+                    h = h * H + obj.GetString().GetHashCode();
+                    break;
                 case JsonValueKind.Number when obj.TryGetInt64(out var l):
-                    return JsonValueKind.Number.GetHashCode() ^ l.GetHashCode();
+                    h = h * H + JsonValueKind.Number.GetHashCode();
+                    h = h * H + l.GetHashCode();
+                    break;
                 case JsonValueKind.Number when obj.TryGetDouble(out var d):
-                    return JsonValueKind.Number.GetHashCode() ^ d.GetHashCode();
+                    h = h * H + JsonValueKind.Number.GetHashCode();
+                    h = h * H + d.GetHashCode();
+                    break;
                 case JsonValueKind.Array:
-                    return JsonValueKind.Array.GetHashCode() ^ GetHashCodeArray(obj);
+                    h = h * H + JsonValueKind.Array.GetHashCode();
+                    h = h * H + GetHashCodeArray(obj);
+                    break;
                 case JsonValueKind.Object:
-                    return JsonValueKind.Object.GetHashCode() ^ GetHashCodeObject(obj);
+                    h = h * H + JsonValueKind.Object.GetHashCode();
+                    h = h * H + GetHashCodeObject(obj);
+                    break;
                 default:
                     throw new JsonException("Invalid element type.");
             }
+
+            return h;
         }
 
         int GetHashCodeArray(JsonElement obj)
         {
-            var h = 0;
+            var h = 17;
             var p = 0;
 
             // add hash of position + each item
             foreach (var i in obj.EnumerateArray())
-                h ^= p++.GetHashCode() ^ GetHashCode(i);
+            {
+                h = h * H + p++.GetHashCode();
+                h = h * H + GetHashCode(i);
+            }
 
             // trail with hash of total count
-            h ^= p.GetHashCode();
+            h = h * H + p.GetHashCode();
 
             return h;
         }
 
         int GetHashCodeObject(JsonElement obj)
         {
-            var h = 0;
+            var h = 17;
             var p = 0;
 
             foreach (var i in obj.EnumerateObject().OrderBy(i => i.Name))
-                h ^= p++.GetHashCode() ^ i.Name.GetHashCode() ^ GetHashCode(i.Value);
+            {
+                h = h * H + p++.GetHashCode();
+                h = h * H + i.Name.GetHashCode();
+                h = h * H + GetHashCode(i.Value);
+            }
 
-            h ^= p.GetHashCode();
+            h = h * H + p.GetHashCode();
 
             return h;
         }
