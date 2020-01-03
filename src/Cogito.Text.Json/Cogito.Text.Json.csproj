@@ -6,9 +6,11 @@
     <Authors>Jerome Haltom</Authors>
     <Description>Extensions for working with the System.Text.Json API. Contains a JsonElement equality expression builder for fast dynamic JSON equality tests.</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <UserSecretsId>5a80c431-4169-4904-b976-5f722d48d4e9</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.0" />
     <PackageReference Include="System.Text.Json" Version="4.7.0" />
   </ItemGroup>
 
